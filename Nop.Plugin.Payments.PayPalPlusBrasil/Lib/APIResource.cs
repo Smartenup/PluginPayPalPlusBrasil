@@ -1,14 +1,12 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.Linq;
-using System.Configuration;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using Newtonsoft.Json.Linq;
-using System.Globalization;
 
 namespace Nop.Plugin.Payments.PayPalPlusBrasil
 {
@@ -25,7 +23,7 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil
 
         Task<T> PostAsync<T>(object data);
         Task<T> PostAsync<T>(object data, string partOfUrl);
-        Task<T> PostAsync<T>(object data, string partOfUrl, string apiUserToken);
+        Task<T> PostAsync<T>(object data, string partOfUrl, string apiUserToken, string username = null, string password = null, FormUrlEncodedContent encodedContent = null);
 
         Task<T> PutAsync<T>(string id, object data);
 
@@ -39,10 +37,9 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil
     {
         private readonly IHttpClientWrapper client;
         private readonly JsonSerializerSettings JsonSettings;
-        private readonly string _version;
+        //private readonly string _version;
         private readonly string _endpoint;
         private readonly string _apiVersion;
-        private readonly string _apiKey;
         private string _baseURI;
 
         public string BaseURI
@@ -54,21 +51,19 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil
         /// <summary>
         /// Construtor customizado que permite total controle sobre as configurações do client
         /// </summary>
-        public APIResource(IHttpClientWrapper customClient, JsonSerializerSettings customJsonSerializerSettings = null)
+        public APIResource(bool sandBox, IHttpClientWrapper customClient, JsonSerializerSettings customJsonSerializerSettings = null)
         {
             client = customClient;
             JsonSettings = customJsonSerializerSettings ?? new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore };
-            _version = "1.0.5";
             _apiVersion = "v1";
-            _endpoint = "https://api.iugu.com";
-
+            _endpoint = sandBox ? "https://api.sandbox.paypal.com" : "https://api.paypal.com";
             _baseURI = _endpoint + "/" + _apiVersion;
         }
 
         /// <summary>
         /// Construtor default que usa as configurações padrão do httpClient e do JsonSerializer
         /// </summary>
-        public APIResource() : this(new StandardHttpClient(),
+        public APIResource(bool sandBox) : this(sandBox, new StandardHttpClient(),
             new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore })
         {
         }
@@ -116,10 +111,10 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil
             return response;
         }
 
-        public async Task<T> PostAsync<T>(object data, string partOfUrl, string customApiToken)
+        public async Task<T> PostAsync<T>(object data, string partOfUrl, string customApiToken = null, string username = null, string password = null, FormUrlEncodedContent encodedContent = null)
         {
             var completeUrl = GetCompleteUrl(partOfUrl, null);
-            var response = await SendRequestAsync(HttpMethod.Post, completeUrl, data, customApiToken).ConfigureAwait(false);
+            var response = await SendRequestAsync(HttpMethod.Post, completeUrl, data, customApiToken, username, password, encodedContent).ConfigureAwait(false);
             return await ProcessResponse<T>(response).ConfigureAwait(false);
         }
 
@@ -139,7 +134,7 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil
             var response = await SendRequestAsync(HttpMethod.Put, completeUrl, data, customApiToken).ConfigureAwait(false);
             return await ProcessResponse<T>(response).ConfigureAwait(false);
         }
-
+        
         public async Task<T> DeleteAsync<T>(string id)
         {
             return await DeleteAsync<T>(id, null).ConfigureAwait(false);
@@ -164,34 +159,44 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil
             throw new Exception(errorMessage);
         }
 
-        private async Task<HttpResponseMessage> SendRequestAsync(HttpMethod method, string url, object data = null, string customToken = null)
+        private async Task<HttpResponseMessage> SendRequestAsync(HttpMethod method, string url, object data = null, string customToken = null, string username = null, string password = null, FormUrlEncodedContent encodedContent = null)
         {
             using (var requestMessage = new HttpRequestMessage(method, url))
             {
-                SetAutorizationHeader(customToken, requestMessage);
+                SetAutorizationHeader(requestMessage, customToken, username, password);
 
-                await SetContent(data, requestMessage);
+                await SetContent(data, requestMessage, encodedContent);
 
                 var response = await client.SendAsync(requestMessage).ConfigureAwait(false);
                 return response;
             }
         }
 
-        private async Task SetContent(object data, HttpRequestMessage requestMessage)
+        private async Task SetContent(object data, HttpRequestMessage requestMessage, FormUrlEncodedContent encodedContent = null)
         {
             if (data != null)
             {
                 var content = await Task.FromResult(JsonConvert.SerializeObject(data, JsonSettings)).ConfigureAwait(false);
                 requestMessage.Content = new StringContent(content, Encoding.UTF8, "application/json");
             }
+
+            if (encodedContent != null)
+            {
+                requestMessage.Content = encodedContent;
+            }
+
         }
 
-        private void SetAutorizationHeader(string customToken, HttpRequestMessage requestMessage)
+        private void SetAutorizationHeader(HttpRequestMessage requestMessage, string customToken = null, string username = null, string password = null)
         {
+            if ((!string.IsNullOrEmpty(username)) && (!string.IsNullOrEmpty(password)))
+                requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes($"{username}:{password}")));
+            
+            if ((!string.IsNullOrEmpty(username)) && (string.IsNullOrEmpty(password)))
+                requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes(username)));
+
             if (!string.IsNullOrEmpty(customToken))
-                requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes(customToken)));
-            else
-                requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes(_apiKey)));
+                requestMessage.Headers.Authorization = new AuthenticationHeaderValue("Bearer", customToken);
         }
 
         private string GetCompleteUrl(string partOfUrl, string id)
@@ -208,7 +213,7 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil
         {
             try
             {
-                var jsonMessage = JsonConvert.DeserializeObject<IuguComplexErrorResponse>(data);
+                var jsonMessage = JsonConvert.DeserializeObject<PayPalPlusComplexErrorResponse>(data);
 
                 return await Task.FromResult(JsonConvert.SerializeObject(new
                 {
@@ -222,7 +227,7 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil
             {
                 try
                 {
-                    var jsonMessage = JsonConvert.DeserializeObject<IuguErrorResponse>(data).Errors;
+                    var jsonMessage = JsonConvert.DeserializeObject<PayPalErrorResponse>(data).Errors;
                     return await Task.FromResult(JsonConvert.SerializeObject(new
                     {
                         StatusCode = response.StatusCode,
@@ -237,15 +242,17 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil
 
             }
         }
+
+
     }
 
-    internal sealed class IuguComplexErrorResponse
+    internal sealed class PayPalPlusComplexErrorResponse
     {
         public Dictionary<string, JArray> Errors { get; set; }
     }
 
 
-    internal sealed class IuguErrorResponse
+    internal sealed class PayPalErrorResponse
     {
         public string Errors { get; set; }
     }

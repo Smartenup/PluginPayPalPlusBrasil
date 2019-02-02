@@ -1,23 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Web.Mvc;
-using Nop.Core;
+﻿using Nop.Core;
+using Nop.Core.Domain.Customers;
+using Nop.Core.Domain.Discounts;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Payments;
+using Nop.Plugin.Payments.PayPalPlusBrasil.Domain;
+using Nop.Plugin.Payments.PayPalPlusBrasil.Lib;
 using Nop.Plugin.Payments.PayPalPlusBrasil.Models;
-using Nop.Plugin.Payments.PayPalPlusBrasil.Validators;
-using Nop.Services;
+using Nop.Plugin.Payments.PayPalPlusBrasil.Models.Message.Request;
+using Nop.Plugin.Payments.PayPalPlusBrasil.Models.Message.Response;
+using Nop.Plugin.Payments.PayPalPlusBrasil.Service;
+using Nop.Services.Catalog;
 using Nop.Services.Common;
 using Nop.Services.Configuration;
+using Nop.Services.Customers;
 using Nop.Services.Localization;
 using Nop.Services.Logging;
 using Nop.Services.Orders;
 using Nop.Services.Payments;
 using Nop.Services.Stores;
+using Nop.Services.Tax;
 using Nop.Web.Framework.Controllers;
+using SmartenUP.Core.Util.Helper;
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Web.Mvc;
 
 namespace Nop.Plugin.Payments.PayPalPlusBrasil.Controllers
 {
@@ -32,26 +40,50 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil.Controllers
         private readonly ILogger _logger;
         private readonly PaymentSettings _paymentSettings;
         private readonly ILocalizationService _localizationService;
+        private readonly IWebHelper _webHelper;
+        private readonly ICustomerService _customerService;
+        private readonly IStoreContext _storeContext;
+        private readonly IOrderTotalCalculationService _orderTotalCalculationService;
+        private readonly IAddressAttributeParser _addressAttributeParser;
+        private readonly ITaxService _taxService;
+        private readonly IPriceCalculationService _priceCalculationService;
+        private readonly IPayPalPlusCustomerService _payPalPlusCustomerService;
 
         public PaymentPayPalPlusBrasilController(IWorkContext workContext,
-            IStoreService storeService, 
-            ISettingService settingService, 
-            IPaymentService paymentService, 
-            IOrderService orderService, 
-            IOrderProcessingService orderProcessingService, 
+            IStoreService storeService,
+            ISettingService settingService,
+            IPaymentService paymentService,
+            IOrderService orderService,
+            IOrderProcessingService orderProcessingService,
             ILogger logger,
-            PaymentSettings paymentSettings, 
-            ILocalizationService localizationService)
+            PaymentSettings paymentSettings,
+            ILocalizationService localizationService,
+            IWebHelper webHelper,
+            ICustomerService customerService,
+            IStoreContext storeContext,
+            IOrderTotalCalculationService orderTotalCalculationService,
+            IAddressAttributeParser addressAttributeParser,
+            ITaxService taxService,
+            IPriceCalculationService priceCalculationService,
+            IPayPalPlusCustomerService payPalPlusCustomerService)
         {
-            this._workContext = workContext;
-            this._storeService = storeService;
-            this._settingService = settingService;
-            this._paymentService = paymentService;
-            this._orderService = orderService;
-            this._orderProcessingService = orderProcessingService;
-            this._logger = logger;
-            this._paymentSettings = paymentSettings;
-            this._localizationService = localizationService;
+            _workContext = workContext;
+            _storeService = storeService;
+            _settingService = settingService;
+            _paymentService = paymentService;
+            _orderService = orderService;
+            _orderProcessingService = orderProcessingService;
+            _logger = logger;
+            _paymentSettings = paymentSettings;
+            _localizationService = localizationService;
+            _webHelper = webHelper;
+            _customerService = customerService;
+            _storeContext = storeContext;
+            _orderTotalCalculationService = orderTotalCalculationService;
+            _addressAttributeParser = addressAttributeParser;
+            _taxService = taxService;
+            _priceCalculationService = priceCalculationService;
+            _payPalPlusCustomerService = payPalPlusCustomerService;
         }
 
         [AdminAuthorize]
@@ -59,33 +91,31 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil.Controllers
         public ActionResult Configure()
         {
             /*
-             * //load settings for a chosen store scope
+             * //load settings for a chosen store scope*/
             var storeScope = this.GetActiveStoreScopeConfiguration(_storeService, _workContext);
             var PayPalPlusBrasilPaymentSettings = _settingService.LoadSetting<PayPalPlusBrasilPaymentSettings>(storeScope);
-            */
+            
             var model = new ConfigurationModel();
-            /*
-            model.UseSandbox = PayPalPlusBrasilPaymentSettings.UseSandbox;
-            model.TransactModeId = Convert.ToInt32(PayPalPlusBrasilPaymentSettings.TransactMode);
-            model.ApiAccountName = PayPalPlusBrasilPaymentSettings.ApiAccountName;
-            model.ApiAccountPassword = PayPalPlusBrasilPaymentSettings.ApiAccountPassword;
-            model.Signature = PayPalPlusBrasilPaymentSettings.Signature;
-            model.AdditionalFee = PayPalPlusBrasilPaymentSettings.AdditionalFee;
-            model.AdditionalFeePercentage = PayPalPlusBrasilPaymentSettings.AdditionalFeePercentage;
-            model.TransactModeValues = PayPalPlusBrasilPaymentSettings.TransactMode.ToSelectList();
+                        model.UseSandbox = PayPalPlusBrasilPaymentSettings.UseSandbox;
+            model.RestAPISandBoxAccount = PayPalPlusBrasilPaymentSettings.RestAPISandBoxAccount;
+            model.RestAPIClientId = PayPalPlusBrasilPaymentSettings.RestAPIClientId;
+            model.RestAPISecrect = PayPalPlusBrasilPaymentSettings.RestAPISecrect;
+            model.IdButtonConfirmOrFunction = PayPalPlusBrasilPaymentSettings.IdButtonConfirmOrFunction;
+            model.HabilitarParcelamento = PayPalPlusBrasilPaymentSettings.HabilitarParcelamento;
+            model.ParcelamentoMaximo = PayPalPlusBrasilPaymentSettings.ParcelamentoMaximo;
 
             model.ActiveStoreScopeConfiguration = storeScope;
             if (storeScope > 0)
             {
                 model.UseSandbox_OverrideForStore = _settingService.SettingExists(PayPalPlusBrasilPaymentSettings, x => x.UseSandbox, storeScope);
-                model.TransactModeId_OverrideForStore = _settingService.SettingExists(PayPalPlusBrasilPaymentSettings, x => x.TransactMode, storeScope);
-                model.ApiAccountName_OverrideForStore = _settingService.SettingExists(PayPalPlusBrasilPaymentSettings, x => x.ApiAccountName, storeScope);
-                model.ApiAccountPassword_OverrideForStore = _settingService.SettingExists(PayPalPlusBrasilPaymentSettings, x => x.ApiAccountPassword, storeScope);
-                model.Signature_OverrideForStore = _settingService.SettingExists(PayPalPlusBrasilPaymentSettings, x => x.Signature, storeScope);
-                model.AdditionalFee_OverrideForStore = _settingService.SettingExists(PayPalPlusBrasilPaymentSettings, x => x.AdditionalFee, storeScope);
-                model.AdditionalFeePercentage_OverrideForStore = _settingService.SettingExists(PayPalPlusBrasilPaymentSettings, x => x.AdditionalFeePercentage, storeScope);
+                model.RestAPISandBoxAccount_OverrideForStore = _settingService.SettingExists(PayPalPlusBrasilPaymentSettings, x => x.RestAPISandBoxAccount, storeScope);
+                model.RestAPIClientId_OverrideForStore = _settingService.SettingExists(PayPalPlusBrasilPaymentSettings, x => x.RestAPIClientId, storeScope);
+                model.RestAPISecrect_OverrideForStore = _settingService.SettingExists(PayPalPlusBrasilPaymentSettings, x => x.RestAPISecrect, storeScope);
+                model.IdButtonConfirmOrFunction_OverrideForStore = _settingService.SettingExists(PayPalPlusBrasilPaymentSettings, x => x.IdButtonConfirmOrFunction, storeScope);
+                model.HabilitarParcelamento_OverrideForStore = _settingService.SettingExists(PayPalPlusBrasilPaymentSettings, x => x.HabilitarParcelamento, storeScope);
+                model.ParcelamentoMaximo_OverrideForStore = _settingService.SettingExists(PayPalPlusBrasilPaymentSettings, x => x.ParcelamentoMaximo, storeScope);
             }
-            */
+            
             return View("~/Plugins/Payments.PayPalPlusBrasil/Views/PaymentPayPalPlusBrasil/Configure.cshtml", model);
         }
 
@@ -94,40 +124,41 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil.Controllers
         [ChildActionOnly]
         public ActionResult Configure(ConfigurationModel model)
         {
-            /*if (!ModelState.IsValid)
+            if (!ModelState.IsValid)
                 return Configure();
 
             //load settings for a chosen store scope
             var storeScope = this.GetActiveStoreScopeConfiguration(_storeService, _workContext);
-            var PayPalPlusBrasilPaymentSettings = _settingService.LoadSetting<PayPalPlusBrasilPaymentSettings>(storeScope);
+            var payPalPlusBrasilPaymentSettings = _settingService.LoadSetting<PayPalPlusBrasilPaymentSettings>(storeScope);
 
             //save settings
-            PayPalPlusBrasilPaymentSettings.UseSandbox = model.UseSandbox;
-            PayPalPlusBrasilPaymentSettings.TransactMode = (TransactMode)model.TransactModeId;
-            PayPalPlusBrasilPaymentSettings.ApiAccountName = model.ApiAccountName;
-            PayPalPlusBrasilPaymentSettings.ApiAccountPassword = model.ApiAccountPassword;
-            PayPalPlusBrasilPaymentSettings.Signature = model.Signature;
-            PayPalPlusBrasilPaymentSettings.AdditionalFee = model.AdditionalFee;
-            PayPalPlusBrasilPaymentSettings.AdditionalFeePercentage = model.AdditionalFeePercentage;
+            payPalPlusBrasilPaymentSettings.UseSandbox = model.UseSandbox;
+            payPalPlusBrasilPaymentSettings.RestAPISandBoxAccount = model.RestAPISandBoxAccount;
+            payPalPlusBrasilPaymentSettings.RestAPIClientId = model.RestAPIClientId;
+            payPalPlusBrasilPaymentSettings.RestAPISecrect = model.RestAPISecrect;
+            payPalPlusBrasilPaymentSettings.IdButtonConfirmOrFunction = model.IdButtonConfirmOrFunction;
+            payPalPlusBrasilPaymentSettings.HabilitarParcelamento = model.HabilitarParcelamento;
+            payPalPlusBrasilPaymentSettings.ParcelamentoMaximo = model.ParcelamentoMaximo;
+
 
             /* We do not clear cache after each setting update.
              * This behavior can increase performance because cached settings will not be cleared 
              * and loaded from database after each update */
-             /*
-            _settingService.SaveSettingOverridablePerStore(PayPalPlusBrasilPaymentSettings, x => x.UseSandbox, model.UseSandbox_OverrideForStore, storeScope, false);
-            _settingService.SaveSettingOverridablePerStore(PayPalPlusBrasilPaymentSettings, x => x.TransactMode, model.TransactModeId_OverrideForStore, storeScope, false);
-            _settingService.SaveSettingOverridablePerStore(PayPalPlusBrasilPaymentSettings, x => x.ApiAccountName, model.ApiAccountName_OverrideForStore, storeScope, false);
-            _settingService.SaveSettingOverridablePerStore(PayPalPlusBrasilPaymentSettings, x => x.ApiAccountPassword, model.ApiAccountPassword_OverrideForStore, storeScope, false);
-            _settingService.SaveSettingOverridablePerStore(PayPalPlusBrasilPaymentSettings, x => x.Signature, model.Signature_OverrideForStore, storeScope, false);
-            _settingService.SaveSettingOverridablePerStore(PayPalPlusBrasilPaymentSettings, x => x.AdditionalFee, model.AdditionalFee_OverrideForStore, storeScope, false);
-            _settingService.SaveSettingOverridablePerStore(PayPalPlusBrasilPaymentSettings, x => x.AdditionalFeePercentage, model.AdditionalFeePercentage_OverrideForStore, storeScope, false);
+
+            _settingService.SaveSettingOverridablePerStore(payPalPlusBrasilPaymentSettings, x => x.UseSandbox, model.UseSandbox_OverrideForStore, storeScope, false);
+            _settingService.SaveSettingOverridablePerStore(payPalPlusBrasilPaymentSettings, x => x.RestAPISandBoxAccount, model.RestAPISandBoxAccount_OverrideForStore, storeScope, false);
+            _settingService.SaveSettingOverridablePerStore(payPalPlusBrasilPaymentSettings, x => x.RestAPIClientId, model.RestAPIClientId_OverrideForStore, storeScope, false);
+            _settingService.SaveSettingOverridablePerStore(payPalPlusBrasilPaymentSettings, x => x.RestAPISecrect, model.RestAPISecrect_OverrideForStore, storeScope, false);
+            _settingService.SaveSettingOverridablePerStore(payPalPlusBrasilPaymentSettings, x => x.IdButtonConfirmOrFunction, model.IdButtonConfirmOrFunction_OverrideForStore, storeScope, false);
+
+            _settingService.SaveSettingOverridablePerStore(payPalPlusBrasilPaymentSettings, x => x.HabilitarParcelamento, model.HabilitarParcelamento_OverrideForStore, storeScope, false);
+            _settingService.SaveSettingOverridablePerStore(payPalPlusBrasilPaymentSettings, x => x.ParcelamentoMaximo, model.ParcelamentoMaximo_OverrideForStore, storeScope, false);
 
             //now clear settings cache
-            /*
+
             _settingService.ClearCache();
             
             SuccessNotification(_localizationService.GetResource("Admin.Plugins.Saved"));
-            */
 
             return Configure();
         }
@@ -135,76 +166,220 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil.Controllers
         [ChildActionOnly]
         public ActionResult PaymentInfo()
         {
+            var storeScope = this.GetActiveStoreScopeConfiguration(_storeService, _workContext);
+            var payPalPlusBrasilPaymentSettings = _settingService.LoadSetting<PayPalPlusBrasilPaymentSettings>(storeScope);
+
+            var customer = _customerService.GetCustomerById(_workContext.CurrentCustomer.Id);
+            var customerPayPalPlus = _payPalPlusCustomerService.GetCustomerPayPalPlus(customer);
+
             var model = new PaymentInfoModel();
-            /*
-            
-            //CC types
-            model.CreditCardTypes.Add(new SelectListItem
-            {
-                Text = "Visa",
-                Value = "Visa",
-            });
-            model.CreditCardTypes.Add(new SelectListItem
-            {
-                Text = "Master card",
-                Value = "MasterCard",
-            });
-            model.CreditCardTypes.Add(new SelectListItem
-            {
-                Text = "Discover",
-                Value = "Discover",
-            });
-            model.CreditCardTypes.Add(new SelectListItem
-            {
-                Text = "Amex",
-                Value = "Amex",
-            });
 
-            //years
-            for (int i = 0; i < 15; i++)
-            {
-                string year = Convert.ToString(DateTime.Now.Year + i);
-                model.ExpireYears.Add(new SelectListItem
-                {
-                    Text = year,
-                    Value = year,
-                });
-            }
+            string username = payPalPlusBrasilPaymentSettings.RestAPIClientId;
+            string password = payPalPlusBrasilPaymentSettings.RestAPISecrect;
 
-            //months
-            for (int i = 1; i <= 12; i++)
-            {
-                string text = (i < 10) ? "0" + i : i.ToString();
-                model.ExpireMonths.Add(new SelectListItem
-                {
-                    Text = text,
-                    Value = i.ToString(),
-                });
-            }
+            TokenResponse tokenResponse = null;
+            PaymentResponse paymentResponse = null;
+            PaymentMessage paymentMessage = null;
+                       
 
-            //set postback values
-            var form = this.Request.Form;
-            model.CardholderName = form["CardholderName"];
-            model.CardNumber = form["CardNumber"];
-            model.CardCode = form["CardCode"];
-            var selectedCcType = model.CreditCardTypes.FirstOrDefault(x => x.Value.Equals(form["CreditCardType"], StringComparison.InvariantCultureIgnoreCase));
-            if (selectedCcType != null)
-                selectedCcType.Selected = true;
-            var selectedMonth = model.ExpireMonths.FirstOrDefault(x => x.Value.Equals(form["ExpireMonth"], StringComparison.InvariantCultureIgnoreCase));
-            if (selectedMonth != null)
-                selectedMonth.Selected = true;
-            var selectedYear = model.ExpireYears.FirstOrDefault(x => x.Value.Equals(form["ExpireYear"], StringComparison.InvariantCultureIgnoreCase));
-            if (selectedYear != null)
-                selectedYear.Selected = true;
+            using (var token = new Token(payPalPlusBrasilPaymentSettings.UseSandbox))
+                tokenResponse = token.CreateAsync(username, password).ConfigureAwait(false).GetAwaiter().GetResult();
 
-            */
+            VerifyProfileExperience(payPalPlusBrasilPaymentSettings, tokenResponse);
+
+            paymentMessage = GetPaymentoMessage(payPalPlusBrasilPaymentSettings, customer);
+
+            using (var paymentCreation = new PaymentCreation(payPalPlusBrasilPaymentSettings.UseSandbox))
+                paymentResponse = paymentCreation.CreateAsync(paymentMessage, tokenResponse.AcessToken).ConfigureAwait(false).GetAwaiter().GetResult();
+
+            var number = string.Empty;
+            var complement = string.Empty;
+            var cpfCnpj = string.Empty;
+
+            new AddressHelper(_addressAttributeParser, _workContext).GetCustomNumberAndComplement(customer.ShippingAddress.CustomAttributes,
+                out number, out complement, out cpfCnpj);
+
+
+            model.ApprovalUrl = GetAprovalUrl(paymentResponse.Links);
+            model.Mode = payPalPlusBrasilPaymentSettings.UseSandbox ? "sandbox" : "live";
+            model.PayerFirstName = customer.BillingAddress.FirstName;
+            model.PayerLastName = customer.BillingAddress.LastName;
+            model.PayerEmail = customer.Email;
+            model.PayerPhone = AddressHelper.FormatarCelular(customer.ShippingAddress.PhoneNumber);
+            model.PayerTaxId = cpfCnpj;
+            model.DisableContinue = payPalPlusBrasilPaymentSettings.IdButtonConfirmOrFunction;
+            model.EnableContinue = payPalPlusBrasilPaymentSettings.IdButtonConfirmOrFunction;
+
+            model.HabilitarParcelamento = payPalPlusBrasilPaymentSettings.HabilitarParcelamento ? "1" : "0";
+            model.ParcelamentoMaximo = payPalPlusBrasilPaymentSettings.ParcelamentoMaximo.ToString();
+
+            model.CPFCNPJ = (cpfCnpj.Length <= 11) ? "BR_CPF" : "BR_CNPJ";
+
+            model.PaymentIdPayPal = paymentResponse.Id;
+
+            model.RememberedCards = (customerPayPalPlus != null) ? customerPayPalPlus.RememberedCards: string.Empty;
+
             return View("~/Plugins/Payments.PayPalPlusBrasil/Views/PaymentPayPalPlusBrasil/PaymentInfo.cshtml", model);
+        }
+
+        private Uri GetAprovalUrl(Link[] link)
+        {
+            foreach (var item in link)
+            {
+                if (string.Equals(item.Rel, "approval_url"))
+                {
+                    return item.Href;
+                }
+            }
+
+            return null;
+        }
+
+        private PaymentMessage GetPaymentoMessage(PayPalPlusBrasilPaymentSettings payPalPlusBrasilPaymentSettings, Customer customer)
+        {
+
+            var cart = _workContext.CurrentCustomer.ShoppingCartItems.
+                Where(sci => sci.ShoppingCartType == ShoppingCartType.ShoppingCart)
+               .LimitPerStore(_storeContext.CurrentStore.Id)
+               .ToList();
+
+            List<AppliedGiftCard> appliedGiftCards;
+            List<Discount> orderAppliedDiscounts;
+            decimal orderDiscountAmount;
+            int redeemedRewardPoints;
+            decimal redeemedRewardPointsAmount;
+            var orderTotal = _orderTotalCalculationService.GetShoppingCartTotal(cart, out orderDiscountAmount,
+                out orderAppliedDiscounts, out appliedGiftCards, out redeemedRewardPoints, out redeemedRewardPointsAmount);
+
+            decimal tax;
+            List<Discount> shippingTotalDiscounts;
+            var orderShippingTotalInclTax = _orderTotalCalculationService.GetShoppingCartShippingTotal(cart, true, out tax, out shippingTotalDiscounts);
+
+            decimal orderSubTotalDiscountAmount;
+            List<Discount> orderSubTotalAppliedDiscounts;
+            decimal subTotalWithoutDiscountBase;
+            decimal subTotalWithDiscountBase;
+            _orderTotalCalculationService.GetShoppingCartSubTotal(cart, true, out orderSubTotalDiscountAmount,
+                out orderSubTotalAppliedDiscounts, out subTotalWithoutDiscountBase, out subTotalWithDiscountBase);
+
+            var paymentMessage = new PaymentMessage();
+
+            paymentMessage.Intent = "sale";
+            paymentMessage.Payer.PaymentMethod = "paypal";
+
+            paymentMessage.ExperienceProfileId = payPalPlusBrasilPaymentSettings.IdProfileExperience;
+
+            var transactionList = new List<Models.Message.Request.Transaction>();
+            var itemTransaction = new Models.Message.Request.Transaction();
+
+            itemTransaction.Amount.Currency = "BRL";
+            itemTransaction.Amount.Total = orderTotal.Value.ToString("N", new CultureInfo("en-US"));
+            itemTransaction.Amount.Details.Shipping = orderShippingTotalInclTax.Value.ToString("N", new CultureInfo("en-US"));
+            itemTransaction.Amount.Details.Subtotal = subTotalWithoutDiscountBase.ToString("N", new CultureInfo("en-US"));
+            itemTransaction.Amount.Details.Discount = orderDiscountAmount.ToString("N", new CultureInfo("en-US"));
+
+            itemTransaction.Description = "This is the payment transaction description";
+            itemTransaction.PaymentOptions.AllowedPaymentMethod = "IMMEDIATE_PAY";
+            itemTransaction.InvoiceNumber = string.Empty;
+
+
+            var number = string.Empty;
+            var complement = string.Empty;
+
+            new AddressHelper(_addressAttributeParser, _workContext).GetCustomNumberAndComplement(customer.ShippingAddress.CustomAttributes,
+                out number, out complement);
+
+            itemTransaction.ItemList.ShippingAddress.RecipientName = AddressHelper.GetFullName(customer.ShippingAddress);
+            itemTransaction.ItemList.ShippingAddress.Line1 = customer.ShippingAddress.Address1;
+            itemTransaction.ItemList.ShippingAddress.Line2 = complement;
+            itemTransaction.ItemList.ShippingAddress.City = customer.ShippingAddress.City;
+            itemTransaction.ItemList.ShippingAddress.CountryCode = customer.ShippingAddress.Country.TwoLetterIsoCode;
+            itemTransaction.ItemList.ShippingAddress.PostalCode = customer.ShippingAddress.ZipPostalCode;
+            itemTransaction.ItemList.ShippingAddress.State = customer.ShippingAddress.StateProvince.Name;
+            itemTransaction.ItemList.ShippingAddress.Phone = AddressHelper.FormatarCelular(customer.ShippingAddress.PhoneNumber);
+
+            var itemList = new List<Models.Message.Request.Item>();
+
+            foreach (var itemCart in cart)
+            {
+                var item = new Models.Message.Request.Item();
+
+                item.Name = itemCart.Product.Name;
+                item.Description = itemCart.Product.ShortDescription;
+                item.Quantity = itemCart.Quantity;
+
+                List<Discount> scDiscounts;
+                decimal discountAmount;
+
+                var scUnitPrice = _priceCalculationService.GetUnitPrice(itemCart, true, out discountAmount, out scDiscounts);
+
+                item.Price = decimal.Round(scUnitPrice, 2).ToString("N2", new CultureInfo("en-US"));
+                item.Sku = itemCart.Product.Sku;
+                item.Currency = "BRL";
+
+                itemList.Add(item);
+
+            }
+
+
+            itemTransaction.ItemList.Items = itemList.ToArray();
+
+            transactionList.Add(itemTransaction);
+
+            paymentMessage.Transactions = transactionList.ToArray();
+
+            string returnUrl = _webHelper.GetStoreLocation(false) + "Plugins/PaymentPayPalPlusBrasil/PDTHandler";
+            string cancelReturnUrl = _webHelper.GetStoreLocation(false) + "Plugins/PaymentPayPalPlusBrasil/CancelOrder";
+
+            paymentMessage.RedirectUrls.ReturnUrl =  new Uri(returnUrl);
+            paymentMessage.RedirectUrls.CancelUrl = new Uri(cancelReturnUrl);
+
+
+            return paymentMessage;
+        }
+
+        private void VerifyProfileExperience(PayPalPlusBrasilPaymentSettings payPalPlusBrasilPaymentSettings, TokenResponse tokenResponse)
+        {
+            if (string.IsNullOrWhiteSpace(payPalPlusBrasilPaymentSettings.IdProfileExperience))
+            {
+                var storeScope = this.GetActiveStoreScopeConfiguration(_storeService, _workContext);
+
+                var paymentProfileMessage = GetPaymentProfile(storeScope);
+
+                using (var experience = new PaymentExperience(payPalPlusBrasilPaymentSettings.UseSandbox))
+                {
+                    var experienceResponse = experience.CreateAsync(paymentProfileMessage, tokenResponse.AcessToken).ConfigureAwait(false).GetAwaiter().GetResult();
+
+                    payPalPlusBrasilPaymentSettings.IdProfileExperience = experienceResponse.Id;
+
+                    _settingService.SaveSettingOverridablePerStore(payPalPlusBrasilPaymentSettings, x => x.IdProfileExperience, true, storeScope, false);
+
+                    //now clear settings cache
+                    _settingService.ClearCache();
+                }
+            }
+        }
+
+        private PaymentProfileMessage GetPaymentProfile(int storeScope)
+        {
+            var paymentProfileMessage = new PaymentProfileMessage();
+
+            paymentProfileMessage.Name = "Império da Dança - DEV - " + storeScope.ToString();
+            paymentProfileMessage.Presentation.BrandName = "Império da Dança" + storeScope.ToString();
+            paymentProfileMessage.Presentation.LocaleCode = "BR";
+
+            paymentProfileMessage.InputFields.NoShipping = 0;
+            paymentProfileMessage.InputFields.AddressOverride = 1;
+
+            return paymentProfileMessage;
         }
 
         [NonAction]
         public override IList<string> ValidatePaymentForm(FormCollection form)
         {
             var warnings = new List<string>();
+
+            PaymentListenerResponse paymentListenerResponse = PaymentListenerResponse.FromJson(form["ReturnPaymentPayPal"]);
             /*
             //validate
             var validator = new PaymentInfoValidator(_localizationService);
@@ -220,7 +395,6 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil.Controllers
             if (!validationResult.IsValid)
                 foreach (var error in validationResult.Errors)
                     warnings.Add(error.ErrorMessage);
-
             */
             return warnings;
         }
@@ -228,16 +402,43 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil.Controllers
         [NonAction]
         public override ProcessPaymentRequest GetPaymentInfo(FormCollection form)
         {
-            
             var paymentInfo = new ProcessPaymentRequest();
-            /*paymentInfo.CreditCardType = form["CreditCardType"];
-            paymentInfo.CreditCardName = form["CardholderName"];
-            paymentInfo.CreditCardNumber = form["CardNumber"];
-            paymentInfo.CreditCardExpireMonth = int.Parse(form["ExpireMonth"]);
-            paymentInfo.CreditCardExpireYear = int.Parse(form["ExpireYear"]);
-            paymentInfo.CreditCardCvv2 = form["CardCode"];*/
+            paymentInfo.CustomValues = new Dictionary<string, object>();
+
+            var paymentListenerResponse = PaymentListenerResponse.FromJson(form["ReturnPaymentPayPal"]);
+
+            if (!string.IsNullOrWhiteSpace(paymentListenerResponse.ResultListener.Term.MonthlyPayment.Value))
+            {
+                paymentInfo.CustomValues.Add("Parcelamento", paymentListenerResponse.ResultListener.Term.TermTerm.ToString() + "- X");
+                paymentInfo.CustomValues.Add("Valor Parcela", paymentListenerResponse.ResultListener.Term.MonthlyPayment.Value);
+                paymentInfo.CustomValues.Add("MOEDA", paymentListenerResponse.ResultListener.Term.MonthlyPayment.Currency);
+            }
+
+
+            paymentInfo.CustomValues.Add("PayerIdPayPal", paymentListenerResponse.ResultListener.Payer.PayerInfo.PayerId);
+            paymentInfo.CustomValues.Add("PaymentIdPayPal", form["PaymentIdPayPal"]);
+
+            AtualizarRememberedCard(paymentListenerResponse);
+
             return paymentInfo;
-            
+
+        }
+
+        private void AtualizarRememberedCard(PaymentListenerResponse paymentListenerResponse)
+        {
+            var customer = _customerService.GetCustomerById(_workContext.CurrentCustomer.Id);
+
+            var customerPayPalPlus = _payPalPlusCustomerService.GetCustomerPayPalPlus(customer);
+
+            if (customerPayPalPlus == null){ customerPayPalPlus = new CustomerPayPalPlus(); }
+
+            customerPayPalPlus.RememberedCards = paymentListenerResponse.ResultListener.RememberedCards;
+            customerPayPalPlus.CustomerId = _workContext.CurrentCustomer.Id;
+
+            if (customerPayPalPlus.Id > 0)
+                _payPalPlusCustomerService.UpdateCustomer(customerPayPalPlus);
+            else
+                _payPalPlusCustomerService.InsertCustomer(customerPayPalPlus);
         }
 
         [ValidateInput(false)]
@@ -513,5 +714,6 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil.Controllers
             //nothing should be rendered to visitor
             return Content("");
         }
+
     }
 }

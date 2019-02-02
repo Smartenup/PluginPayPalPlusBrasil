@@ -2,7 +2,7 @@ using System;
 using System.Text;
 using Nop.Core.Domain.Directory;
 using Nop.Core.Domain.Payments;
-using PayPal.PayPalAPIInterfaceService.Model;
+//using PayPal.PayPalAPIInterfaceService.Model;
 
 namespace Nop.Plugin.Payments.PayPalPlusBrasil
 {

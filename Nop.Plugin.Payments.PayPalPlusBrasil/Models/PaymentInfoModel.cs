@@ -1,44 +1,31 @@
-﻿using System.Collections.Generic;
-using System.Web.Mvc;
-using Nop.Web.Framework;
-using Nop.Web.Framework.Mvc;
+﻿using Nop.Web.Framework.Mvc;
+using System;
 
 namespace Nop.Plugin.Payments.PayPalPlusBrasil.Models
 {
     public class PaymentInfoModel : BaseNopModel
     {
-        public PaymentInfoModel()
-        {
-            CreditCardTypes = new List<SelectListItem>();
-            ExpireMonths = new List<SelectListItem>();
-            ExpireYears = new List<SelectListItem>();
-        }
+        public Uri ApprovalUrl { get; set; }
+        public string Mode { get; set; }
+        public string PayerFirstName { get; set; }
+        public string PayerLastName { get; set; }
+        public string PayerEmail { get; set; }
+        public string PayerPhone { get; set; }
+        public string PayerTaxId { get; set; }
+        public string EnableContinue { get; set; }
 
-        [NopResourceDisplayName("Payment.SelectCreditCard")]
-        [AllowHtml]
-        public string CreditCardType { get; set; }
-        [NopResourceDisplayName("Payment.SelectCreditCard")]
-        public IList<SelectListItem> CreditCardTypes { get; set; }
+        public string DisableContinue { get; set; }
 
-        [NopResourceDisplayName("Payment.CardholderName")]
-        [AllowHtml]
-        public string CardholderName { get; set; }
+        public string RememberedCards { get; set; }
 
-        [NopResourceDisplayName("Payment.CardNumber")]
-        [AllowHtml]
-        public string CardNumber { get; set; }
+        public string ReturnPaymentPayPal { get; set; }
 
-        [NopResourceDisplayName("Payment.ExpirationDate")]
-        [AllowHtml]
-        public string ExpireMonth { get; set; }
-        [NopResourceDisplayName("Payment.ExpirationDate")]
-        [AllowHtml]
-        public string ExpireYear { get; set; }
-        public IList<SelectListItem> ExpireMonths { get; set; }
-        public IList<SelectListItem> ExpireYears { get; set; }
+        public string PaymentIdPayPal { get; set; }
 
-        [NopResourceDisplayName("Payment.CardCode")]
-        [AllowHtml]
-        public string CardCode { get; set; }
+        public string HabilitarParcelamento { get; set; }
+        public string ParcelamentoMaximo { get; set; }
+
+        public string CPFCNPJ { get; set; }
+
     }
 }

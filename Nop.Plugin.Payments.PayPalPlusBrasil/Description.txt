@@ -1,9 +1,9 @@
 ﻿Group: Payment methods
-FriendlyName: Credit Card
+FriendlyName: Cartão de Crédito
 SystemName: Payments.PayPalPlusBrasil
-Version: 1.35
+Version: 1.00
 SupportedVersions: 3.80
-Author: nopCommerce team
+Author: SmartenUP team/Pedro Usinskas
 DisplayOrder: 1
 FileName: Nop.Plugin.Payments.PayPalPlusBrasil.dll
-Description: This plugin allows paying with PayPal Direct in Brazil
+Description: This plugin allows paying with PayPal Direct Plus in Brazil

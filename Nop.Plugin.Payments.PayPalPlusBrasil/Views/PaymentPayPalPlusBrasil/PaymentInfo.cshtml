@@ -1,0 +1,78 @@
+﻿
+@model Nop.Plugin.Payments.PayPalPlusBrasil.Models.PaymentInfoModel
+
+@{
+    Layout = "";
+}
+
+<div id="ppplusDisplayDiv" style="display: none;">
+    <div id="ppplusDiv"> </div>
+</div>
+<p>Ao clicar em continuar será validados as informações do cartão de crédito, contudo a compra será executada apenas quando confirmar o pedido.</p>
+
+@Html.HiddenFor(model => model.ReturnPaymentPayPal, false)
+@Html.HiddenFor(model => model.PaymentIdPayPal, false)
+
+<script type="application/javascript">
+    var escapeApprovalUrl = escape("@Model.ApprovalUrl");
+
+    var unescapeApprovalUrl = unescape(escapeApprovalUrl);
+
+    unescapeApprovalUrl = unescapeApprovalUrl.replace("&amp;","&")
+
+    var ppp = PAYPAL.apps.PPP({
+      "approvalUrl":  unescapeApprovalUrl,
+      "placeholder": "ppplusDiv",
+      "mode": "@Model.Mode",
+      "payerFirstName": "@Model.PayerFirstName",
+      "payerLastName": "@Model.PayerLastName",
+      "payerPhone": "@Model.PayerPhone",
+      "payerTaxId": "@Model.PayerTaxId",
+      "payerEmail": "@Model.PayerEmail",
+      "payerTaxIdType": "@Model.CPFCNPJ",
+      "language": "pt_BR",
+      "country": "BR",
+      "disableContinue": "@Model.DisableContinue",
+      "enableContinue": "@Model.EnableContinue",
+      "iframeHeight" : "500",
+      "merchantInstallmentSelection" : "@Model.HabilitarParcelamento",
+      "merchantInstallmentSelectionOptional" : "@Model.ParcelamentoMaximo"
+    });
+
+   var PaymentInfoPayPal = {
+
+       doContinue: function() {
+
+           if (Checkout.loadWaiting != false) return;
+
+           Checkout.setLoadWaiting('payment-info');
+
+           ///Alteração para o PayPal, verificar como executar apenas para ele
+           ppp.doContinue();
+       },
+
+       save: function () {
+
+           Checkout.setLoadWaiting(false);
+
+           $("#paymentoInfoConfirm").prop('onclick', null);
+           $("#paymentoInfoConfirm").off("click");
+           $("#paymentoInfoConfirm").on("click", PaymentInfo.Save);
+
+           PaymentInfo.save();
+
+       }
+   };
+
+    $(document).ready(function () {
+
+        $("#paymentoInfoConfirm").prop('onclick', null);
+        $("#paymentoInfoConfirm").off("click");
+        $("#paymentoInfoConfirm").on("click", PaymentInfoPayPal.doContinue);
+
+
+    });
+
+
+
+</script>

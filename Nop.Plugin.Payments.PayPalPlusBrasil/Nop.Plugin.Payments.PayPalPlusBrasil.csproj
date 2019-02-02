@@ -16,7 +16,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\..\NopCommerceSmartenup_3_80\src\Presentation\Nop.Web\Plugins\Payments.PayPalPlusBrasil\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -24,59 +24,85 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>..\..\NopCommerceSmartenup_3_80\src\Presentation\Nop.Web\Plugins\Payments.PayPalPlusBrasil\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Autofac">
+      <HintPath>..\..\NopCommerceSmartenup_3_80\src\packages\Autofac.3.5.2\lib\net40\Autofac.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="EntityFramework">
+      <HintPath>..\..\NopCommerceSmartenup_3_80\src\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="EntityFramework.SqlServer">
+      <HintPath>..\..\NopCommerceSmartenup_3_80\src\packages\EntityFramework.6.1.3\lib\net45\EntityFramework.SqlServer.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
     <Reference Include="FluentValidation">
       <HintPath>..\..\NopCommerceSmartenup_3_80\src\packages\FluentValidation.6.2.1.0\lib\Net45\FluentValidation.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.Threading.Tasks">
       <HintPath>..\..\NopCommerceSmartenup_3_80\src\packages\Microsoft.Bcl.Async.1.0.168\lib\net40\Microsoft.Threading.Tasks.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.Threading.Tasks.Extensions">
       <HintPath>..\..\NopCommerceSmartenup_3_80\src\packages\Microsoft.Bcl.Async.1.0.168\lib\net40\Microsoft.Threading.Tasks.Extensions.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.Threading.Tasks.Extensions.Desktop">
       <HintPath>..\..\NopCommerceSmartenup_3_80\src\packages\Microsoft.Bcl.Async.1.0.168\lib\net40\Microsoft.Threading.Tasks.Extensions.Desktop.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Microsoft.Web.Infrastructure">
       <HintPath>..\..\NopCommerceSmartenup_3_80\src\packages\Microsoft.Web.Infrastructure.1.0.0.0\lib\net40\Microsoft.Web.Infrastructure.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\NopCommerceSmartenup_3_80\src\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Net.Http.Extensions">
       <HintPath>..\..\NopCommerceSmartenup_3_80\src\packages\Microsoft.Net.Http.2.2.29\lib\net45\System.Net.Http.Extensions.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System.Net.Http.Primitives">
       <HintPath>..\..\NopCommerceSmartenup_3_80\src\packages\Microsoft.Net.Http.2.2.29\lib\net45\System.Net.Http.Primitives.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System.Net.Http.WebRequest" />
     <Reference Include="System.Web" />
     <Reference Include="System.Web.Helpers">
       <HintPath>..\..\NopCommerceSmartenup_3_80\src\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.Helpers.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System.Web.Mvc">
       <HintPath>..\..\NopCommerceSmartenup_3_80\src\packages\Microsoft.AspNet.Mvc.5.2.3\lib\net45\System.Web.Mvc.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System.Web.Razor">
       <HintPath>..\..\NopCommerceSmartenup_3_80\src\packages\Microsoft.AspNet.Razor.3.2.3\lib\net45\System.Web.Razor.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System.Web.Services" />
     <Reference Include="System.Web.WebPages">
       <HintPath>..\..\NopCommerceSmartenup_3_80\src\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.WebPages.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System.Web.WebPages.Deployment">
       <HintPath>..\..\NopCommerceSmartenup_3_80\src\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.WebPages.Deployment.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System.Web.WebPages.Razor">
       <HintPath>..\..\NopCommerceSmartenup_3_80\src\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.WebPages.Razor.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -86,39 +112,69 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Controllers\PaymentPayPalDirectController.cs" />
+    <Compile Include="Controllers\PaymentPayPalPlusBrasilController.cs" />
+    <Compile Include="Data\CustomerPayPalPlusMap.cs" />
+    <Compile Include="Data\EfStartUpTask.cs" />
+    <Compile Include="Data\OrderNotePayPalPlusMap.cs" />
+    <Compile Include="Data\PayPalPlusObjectContext.cs" />
+    <Compile Include="DependencyRegistrar.cs" />
+    <Compile Include="Domain\ControlNoteStatus.cs" />
+    <Compile Include="Domain\CustomerPayPalPlus.cs" />
+    <Compile Include="Domain\OrderNotePayPalPlus.cs" />
+    <Compile Include="Domain\OrderWithoutNote.cs" />
+    <Compile Include="Helpers\ParseStringConverter.cs" />
     <Compile Include="Lib\APIResource.cs" />
+    <Compile Include="Lib\PaymentCreation.cs" />
+    <Compile Include="Lib\PaymentExecution.cs" />
+    <Compile Include="Lib\PaymentExperience.cs" />
     <Compile Include="Lib\StandardHttpClient.cs" />
+    <Compile Include="Lib\Token.cs" />
     <Compile Include="Models\ConfigurationModel.cs" />
+    <Compile Include="Models\Message\Request\PaymentCreationMessage.cs" />
+    <Compile Include="Models\Message\Request\PaymentMessage.cs" />
+    <Compile Include="Models\Message\Request\PaymentProfileMessage.cs" />
+    <Compile Include="Models\Message\Response\PaymentExecutitionResponse.cs" />
+    <Compile Include="Models\Message\Response\PaymentListenerResponse.cs" />
+    <Compile Include="Models\Message\Response\PaymentProfileExperienceResponse.cs" />
+    <Compile Include="Models\Message\Response\PaymentResponse.cs" />
     <Compile Include="Models\Message\Response\TokenResponse.cs" />
     <Compile Include="Models\PaymentInfoModel.cs" />
-    <Compile Include="PayPalDirectPaymentProcessor.cs" />
-    <Compile Include="PayPalDirectPaymentSettings.cs" />
+    <Compile Include="PayPalPlusBrasilPaymentProcessor.cs" />
+    <Compile Include="PayPalPlusBrasilPaymentSettings.cs" />
     <Compile Include="PaypalHelper.cs" />
+    <Compile Include="PayPalPlusPrevisaoEnvioTask.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RouteProvider.cs" />
+    <Compile Include="Service\IPayPalPlusCustomerService.cs" />
+    <Compile Include="Service\IPayPalPlusOrderService.cs" />
+    <Compile Include="Service\PayPalPlusCustomerService.cs" />
+    <Compile Include="Service\PayPalPlusOrderService.cs" />
     <Compile Include="TransactMode.cs" />
     <Compile Include="Validators\PaymentInfoValidator.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Description.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="logo.jpg">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Notes.txt" />
-    <Content Include="Views\PaymentPayPalDirect\Configure.cshtml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <Content Include="Notes.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Views\PaymentPayPalPlusBrasil\Configure.cshtml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Views\PaymentPayPalDirect\PaymentInfo.cshtml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <Content Include="Views\PaymentPayPalPlusBrasil\PaymentInfo.cshtml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
+    <None Include="app.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
     <Content Include="web.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -128,26 +184,29 @@
     <ProjectReference Include="..\..\NopCommerceSmartenup_3_80\src\Libraries\Nop.Core\Nop.Core.csproj">
       <Project>{6bda8332-939f-45b7-a25e-7a797260ae59}</Project>
       <Name>Nop.Core</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\NopCommerceSmartenup_3_80\src\Libraries\Nop.Data\Nop.Data.csproj">
       <Project>{ccd7f2c9-6a2c-4cf0-8e89-076b8fc0f144}</Project>
       <Name>Nop.Data</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\NopCommerceSmartenup_3_80\src\Libraries\Nop.Services\Nop.Services.csproj">
       <Project>{210541ad-f659-47da-8763-16f36c5cd2f4}</Project>
       <Name>Nop.Services</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\NopCommerceSmartenup_3_80\src\Presentation\Nop.Web.Framework\Nop.Web.Framework.csproj">
       <Project>{75fd4163-333c-4dd5-854d-2ef294e45d94}</Project>
       <Name>Nop.Web.Framework</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\SmartenUPCore\src\SmartenUP.Nop.Core\SmartenUP.Core.csproj">
       <Project>{41643a41-62c4-4292-9f52-eed3e5e07a07}</Project>
       <Name>SmartenUP.Core</Name>
+      <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Models\Message\Request\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
