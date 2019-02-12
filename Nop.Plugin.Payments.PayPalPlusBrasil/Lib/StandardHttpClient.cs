@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
-namespace Nop.Plugin.Payments.PayPalPlusBrasil
+namespace Nop.Plugin.Payments.PayPalPlusBrasil.Lib
 {
     /// <summary>
     /// Wrapper em cima do HttpClient que provê maior testabilidade e permite inclisive a substituição por qualquer

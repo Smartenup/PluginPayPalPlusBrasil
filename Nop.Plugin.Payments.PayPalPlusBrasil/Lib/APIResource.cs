@@ -3,12 +3,13 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Nop.Plugin.Payments.PayPalPlusBrasil
+namespace Nop.Plugin.Payments.PayPalPlusBrasil.Lib
 {
     /// <summary>
     /// Inteface básica de um recurso de API
@@ -166,6 +167,8 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil
                 SetAutorizationHeader(requestMessage, customToken, username, password);
 
                 await SetContent(data, requestMessage, encodedContent);
+
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
                 var response = await client.SendAsync(requestMessage).ConfigureAwait(false);
                 return response;

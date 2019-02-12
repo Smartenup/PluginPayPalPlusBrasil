@@ -4,6 +4,7 @@ using Nop.Core.Domain.Discounts;
 using Nop.Core.Domain.Orders;
 using Nop.Core.Domain.Payments;
 using Nop.Plugin.Payments.PayPalPlusBrasil.Domain;
+using Nop.Plugin.Payments.PayPalPlusBrasil.Helper;
 using Nop.Plugin.Payments.PayPalPlusBrasil.Lib;
 using Nop.Plugin.Payments.PayPalPlusBrasil.Models;
 using Nop.Plugin.Payments.PayPalPlusBrasil.Models.Message.Request;
@@ -25,6 +26,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Text;
 using System.Web.Mvc;
 
 namespace Nop.Plugin.Payments.PayPalPlusBrasil.Controllers
@@ -276,7 +278,7 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil.Controllers
             itemTransaction.Amount.Total = orderTotal.Value.ToString("N", new CultureInfo("en-US"));
             itemTransaction.Amount.Details.Shipping = orderShippingTotalInclTax.Value.ToString("N", new CultureInfo("en-US"));
             itemTransaction.Amount.Details.Subtotal = subTotalWithoutDiscountBase.ToString("N", new CultureInfo("en-US"));
-            itemTransaction.Amount.Details.Discount = orderDiscountAmount.ToString("N", new CultureInfo("en-US"));
+            itemTransaction.Amount.Details.Discount = (orderDiscountAmount + orderSubTotalDiscountAmount).ToString("N", new CultureInfo("en-US"));
 
             itemTransaction.Description = "This is the payment transaction description";
             itemTransaction.PaymentOptions.AllowedPaymentMethod = "IMMEDIATE_PAY";
@@ -321,7 +323,6 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil.Controllers
 
             }
 
-
             itemTransaction.ItemList.Items = itemList.ToArray();
 
             transactionList.Add(itemTransaction);
@@ -364,7 +365,7 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil.Controllers
         {
             var paymentProfileMessage = new PaymentProfileMessage();
 
-            paymentProfileMessage.Name = "Império da Dança - DEV - " + storeScope.ToString();
+            paymentProfileMessage.Name = "Império da Dança - HOM - " + storeScope.ToString();
             paymentProfileMessage.Presentation.BrandName = "Império da Dança" + storeScope.ToString();
             paymentProfileMessage.Presentation.LocaleCode = "BR";
 
@@ -441,11 +442,10 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil.Controllers
                 _payPalPlusCustomerService.InsertCustomer(customerPayPalPlus);
         }
 
+
         [ValidateInput(false)]
         public ActionResult IPNHandler()
         {
-            /*
-
             byte[] param = Request.BinaryRead(Request.ContentLength);
             string strRequest = Encoding.ASCII.GetString(param);
             Dictionary<string, string> values;
@@ -453,11 +453,10 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil.Controllers
             var processor = _paymentService.LoadPaymentMethodBySystemName("Payments.PayPalPlusBrasil") as PayPalPlusBrasilPaymentProcessor;
             if (processor == null ||
                 !processor.IsPaymentMethodActive(_paymentSettings) || !processor.PluginDescriptor.Installed)
-                throw new NopException("PayPal Direct module cannot be loaded");
+                throw new NopException("PayPal Standard module cannot be loaded");
 
             if (processor.VerifyIpn(strRequest, out values))
             {
-                
                 #region values
                 decimal mc_gross = decimal.Zero;
                 try
@@ -523,7 +522,7 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil.Controllers
                             var initialOrder = _orderService.GetOrderByGuid(orderNumberGuid);
                             if (initialOrder != null)
                             {
-                                var recurringPayments = _orderService.SearchRecurringPayments(0, 0, initialOrder.Id, null, 0 , int.MaxValue);
+                                var recurringPayments = _orderService.SearchRecurringPayments(initialOrderId: initialOrder.Id);
                                 foreach (var rp in recurringPayments)
                                 {
                                     switch (newPaymentStatus)
@@ -644,6 +643,7 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil.Controllers
                                                     _orderService.UpdateOrder(order);
 
                                                     _orderProcessingService.MarkOrderAsPaid(order);
+
                                                 }
                                             }
                                             else
@@ -665,22 +665,21 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil.Controllers
                                         break;
                                     case PaymentStatus.Refunded:
                                         {
-                                            //compare last refund transaction id with IPN transaction id
-                                            if (order.GetAttribute<string>("RefundTransactionId") != txn_id)
+                                            var totalToRefund = Math.Abs(mc_gross);
+                                            if (totalToRefund > 0 && Math.Round(totalToRefund, 2).Equals(Math.Round(order.OrderTotal, 2)))
                                             {
-                                                //refund was initiated not in the nopCommerce
-                                                var totalToRefund = Math.Abs(mc_gross);
-                                                if (totalToRefund > 0 && Math.Round(totalToRefund, 2).Equals(Math.Round(order.OrderTotal, 2)))
+                                                //refund
+                                                if (_orderProcessingService.CanRefundOffline(order))
                                                 {
-                                                    //refund
-                                                    if (_orderProcessingService.CanRefundOffline(order))
-                                                        _orderProcessingService.RefundOffline(order);
+                                                    _orderProcessingService.RefundOffline(order);
                                                 }
-                                                else
+                                            }
+                                            else
+                                            {
+                                                //partial refund
+                                                if (_orderProcessingService.CanPartiallyRefundOffline(order, totalToRefund))
                                                 {
-                                                    //partial refund
-                                                    if (_orderProcessingService.CanPartiallyRefundOffline(order, totalToRefund))
-                                                        _orderProcessingService.PartiallyRefundOffline(order, totalToRefund);
+                                                    _orderProcessingService.PartiallyRefundOffline(order, totalToRefund);
                                                 }
                                             }
                                         }
@@ -710,7 +709,7 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil.Controllers
             {
                 _logger.Error("PayPal IPN failed.", new NopException(strRequest));
             }
-            */
+
             //nothing should be rendered to visitor
             return Content("");
         }

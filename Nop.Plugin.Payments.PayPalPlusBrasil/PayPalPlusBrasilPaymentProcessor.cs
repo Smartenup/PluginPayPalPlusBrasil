@@ -19,6 +19,10 @@ using Nop.Services.Stores;
 using SmartenUP.Core.Services;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Net;
+using System.Text;
+using System.Web;
 using System.Web.Routing;
 
 namespace Nop.Plugin.Payments.PayPalPlusBrasil
@@ -32,7 +36,7 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil
 
         private readonly IWorkContext _workContext;
         private readonly IStoreService _storeService;
-        private readonly PayPalPlusBrasilPaymentSettings _PayPalPlusBrasilPaymentSettings;
+        private readonly PayPalPlusBrasilPaymentSettings _payPalPlusBrasilPaymentSettings;
         private readonly ISettingService _settingService;
         private readonly IGenericAttributeService _genericAttributeService;
         private readonly ICurrencyService _currencyService;
@@ -48,7 +52,7 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil
         public PayPalPlusBrasilPaymentProcessor(
             IWorkContext workContext,
             IStoreService storeService,
-            PayPalPlusBrasilPaymentSettings PayPalPlusBrasilPaymentSettings,
+            PayPalPlusBrasilPaymentSettings payPalPlusBrasilPaymentSettings,
             ISettingService settingService, 
             IGenericAttributeService genericAttributeService,
             ICurrencyService currencyService, ICustomerService customerService,
@@ -59,7 +63,7 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil
         {
             _workContext = workContext;
             _storeService = storeService;
-            _PayPalPlusBrasilPaymentSettings = PayPalPlusBrasilPaymentSettings;
+            _payPalPlusBrasilPaymentSettings = payPalPlusBrasilPaymentSettings;
             _settingService = settingService;
             _genericAttributeService = genericAttributeService;
             _currencyService = currencyService;
@@ -338,6 +342,63 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil
             base.Uninstall();
         }
 
+
+        /// <summary>
+        /// Gets Paypal URL
+        /// </summary>
+        /// <returns></returns>
+        private string GetPaypalUrl()
+        {
+            return _payPalPlusBrasilPaymentSettings.UseSandbox ? "https://www.sandbox.paypal.com/us/cgi-bin/webscr" :
+                "https://www.paypal.com/us/cgi-bin/webscr";
+        }
+
+
+        /// <summary>
+        /// Verifies IPN
+        /// </summary>
+        /// <param name="formString">Form string</param>
+        /// <param name="values">Values</param>
+        /// <returns>Result</returns>
+        public bool VerifyIpn(string formString, out Dictionary<string, string> values)
+        {
+            var req = (HttpWebRequest)WebRequest.Create(GetPaypalUrl());
+            req.Method = WebRequestMethods.Http.Post;
+            req.ContentType = MimeTypes.ApplicationXWwwFormUrlencoded;
+            //now PayPal requires user-agent. otherwise, we can get 403 error
+            req.UserAgent = HttpContext.Current.Request.UserAgent;
+
+            string formContent = string.Format("{0}&cmd=_notify-validate", formString);
+            req.ContentLength = formContent.Length;
+
+            //PayPal requires TLS 1.2 since January 2016
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+
+            using (var sw = new StreamWriter(req.GetRequestStream(), Encoding.ASCII))
+            {
+                sw.Write(formContent);
+            }
+
+            string response;
+            using (var sr = new StreamReader(req.GetResponse().GetResponseStream()))
+            {
+                response = HttpUtility.UrlDecode(sr.ReadToEnd());
+            }
+            bool success = response.Trim().Equals("VERIFIED", StringComparison.OrdinalIgnoreCase);
+
+            values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (string l in formString.Split('&'))
+            {
+                string line = l.Trim();
+                int equalPox = line.IndexOf('=');
+                if (equalPox >= 0)
+                    values.Add(line.Substring(0, equalPox), line.Substring(equalPox + 1));
+            }
+
+            return success;
+        }
+
+
         #endregion
 
         #region Properties
@@ -349,7 +410,7 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil
         {
             get
             {
-                return true;
+                return false;
             }
         }
 
@@ -360,7 +421,7 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil
         {
             get
             {
-                return true;
+                return false;
             }
         }
 
@@ -371,7 +432,7 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil
         {
             get
             {
-                return true;
+                return false;
             }
         }
 
@@ -382,7 +443,7 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil
         {
             get
             {
-                return true;
+                return false;
             }
         }
 

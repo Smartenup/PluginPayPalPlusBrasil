@@ -1,19 +1,22 @@
-﻿
-@model Nop.Plugin.Payments.PayPalPlusBrasil.Models.PaymentInfoModel
+﻿@using Nop.Core;
+@using Nop.Core.Infrastructure;
+@using Nop.Web.Framework.UI;
 
+@model Nop.Plugin.Payments.PayPalPlusBrasil.Models.PaymentInfoModel
 @{
     Layout = "";
 }
 
 <div id="ppplusDisplayDiv" style="display: none;">
     <div id="ppplusDiv"> </div>
+    <p>Ao clicar em continuar será validados as informações do cartão de crédito, contudo a compra será executada apenas quando confirmar o pedido.</p>
 </div>
-<p>Ao clicar em continuar será validados as informações do cartão de crédito, contudo a compra será executada apenas quando confirmar o pedido.</p>
 
 @Html.HiddenFor(model => model.ReturnPaymentPayPal, false)
 @Html.HiddenFor(model => model.PaymentIdPayPal, false)
 
 <script type="application/javascript">
+
     var escapeApprovalUrl = escape("@Model.ApprovalUrl");
 
     var unescapeApprovalUrl = unescape(escapeApprovalUrl);
@@ -34,45 +37,9 @@
       "country": "BR",
       "disableContinue": "@Model.DisableContinue",
       "enableContinue": "@Model.EnableContinue",
-      "iframeHeight" : "500",
-      "merchantInstallmentSelection" : "@Model.HabilitarParcelamento",
-      "merchantInstallmentSelectionOptional" : "@Model.ParcelamentoMaximo"
+      "iframeHeight" : "500"/*,
+      "merchantInstallmentSelection" : @Model.ParcelamentoMaximo,
+      "merchantInstallmentSelectionOptional" : @Model.HabilitarParcelamento ? true : false*/
     });
-
-   var PaymentInfoPayPal = {
-
-       doContinue: function() {
-
-           if (Checkout.loadWaiting != false) return;
-
-           Checkout.setLoadWaiting('payment-info');
-
-           ///Alteração para o PayPal, verificar como executar apenas para ele
-           ppp.doContinue();
-       },
-
-       save: function () {
-
-           Checkout.setLoadWaiting(false);
-
-           $("#paymentoInfoConfirm").prop('onclick', null);
-           $("#paymentoInfoConfirm").off("click");
-           $("#paymentoInfoConfirm").on("click", PaymentInfo.Save);
-
-           PaymentInfo.save();
-
-       }
-   };
-
-    $(document).ready(function () {
-
-        $("#paymentoInfoConfirm").prop('onclick', null);
-        $("#paymentoInfoConfirm").off("click");
-        $("#paymentoInfoConfirm").on("click", PaymentInfoPayPal.doContinue);
-
-
-    });
-
-
 
 </script>

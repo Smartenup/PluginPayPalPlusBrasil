@@ -54,7 +54,7 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil
                 }
                 catch (Exception ex)
                 {
-                    string logError = string.Format("Plugin.Payments.PayPalPlusBrasil: Erro criação nota ordem {0}", order.Id.ToString());
+                    string logError = string.Format("Plugin.Payments.PayPalPlusBrasil: Erro criação nota ordem {0}", orderPayPal.OrderId.ToString());
 
                     _logger.Error(logError, ex);
 
