@@ -157,6 +157,7 @@
     <Compile Include="Validators\PaymentInfoValidator.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="App_Data\Install\CustomerPayPalPlusCreate.sql" />
     <Content Include="Description.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
