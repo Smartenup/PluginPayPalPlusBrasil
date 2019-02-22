@@ -166,7 +166,10 @@
     <Content Include="Notes.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Include="Scripts\paypalplusbrasil.js">
+    <Content Include="Scripts\paypalplusbrasilOnePageCheckout.js">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Scripts\paypalplusbrasilCheckout.js">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Views\PaymentPayPalPlusBrasil\Configure.cshtml">
