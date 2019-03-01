@@ -54,7 +54,16 @@
 
                 ppplusError = message['cause'].replace(/['"]+/g, ""); //log & attach this error into the order if possible
 
-                // <<Insert Code Here>>
+                $.ajax({
+                    cache: false,
+                    type: "PUT",
+                    url: "/Plugins/PaymentPayPalPlusBrasil/LogError",
+                    data: { "ppplusError": ppplusError },
+                    success: function () { },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert('Falha ao inserir log de retorno.');
+                    }
+                });
 
                 switch (ppplusError) {
 

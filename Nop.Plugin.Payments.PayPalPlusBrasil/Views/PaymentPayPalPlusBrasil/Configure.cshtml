@@ -104,6 +104,46 @@
                 </div>
                 <div class="form-group">
                     <div class="col-md-3">
+                        @Html.OverrideStoreCheckboxFor(model => model.Log_OverrideForStore, model => model.Log, Model.ActiveStoreScopeConfiguration)
+                        @Html.NopLabelFor(model => model.Log)
+                    </div>
+                    <div class="col-md-9">
+                        @Html.NopEditorFor(model => model.Log)
+                        @Html.ValidationMessageFor(model => model.Log)
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3">
+                        @Html.OverrideStoreCheckboxFor(model => model.ProfileName_OverrideForStore, model => model.ProfileName, Model.ActiveStoreScopeConfiguration)
+                        @Html.NopLabelFor(model => model.ProfileName)
+                    </div>
+                    <div class="col-md-9">
+                        @Html.NopEditorFor(model => model.ProfileName)
+                        @Html.ValidationMessageFor(model => model.ProfileName)
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3">
+                        @Html.OverrideStoreCheckboxFor(model => model.ProfileBrandName_OverrideForStore, model => model.ProfileBrandName, Model.ActiveStoreScopeConfiguration)
+                        @Html.NopLabelFor(model => model.ProfileBrandName)
+                    </div>
+                    <div class="col-md-9">
+                        @Html.NopEditorFor(model => model.ProfileBrandName)
+                        @Html.ValidationMessageFor(model => model.ProfileBrandName)
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3">
+                        @Html.OverrideStoreCheckboxFor(model => model.ProfileLocaleCode_OverrideForStore, model => model.ProfileLocaleCode, Model.ActiveStoreScopeConfiguration)
+                        @Html.NopLabelFor(model => model.ProfileLocaleCode)
+                    </div>
+                    <div class="col-md-9">
+                        @Html.NopEditorFor(model => model.ProfileLocaleCode)
+                        @Html.ValidationMessageFor(model => model.ProfileLocaleCode)
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-3">
                         &nbsp;
                     </div>
                     <div class="col-md-9">

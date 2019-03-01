@@ -16,5 +16,20 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil
         public bool HabilitarParcelamento { get; set; }
 
         public int ParcelamentoMaximo { get; set; }
+
+        /// <summary>
+        /// get os set a value indicating that will log everthig
+        /// </summary>
+        public bool Log { get; set; }
+        
+        /// <summary>
+        /// Nome do ambiente de execução
+        /// </summary>
+        public string ProfileName { get; set; }
+
+        public string ProfileBrandName { get; set; }
+
+        public string ProfileLocaleCode { get; set; }
+
     }
 }

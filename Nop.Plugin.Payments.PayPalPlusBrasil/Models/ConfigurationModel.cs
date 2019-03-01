@@ -36,5 +36,27 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil.Models
         public int ParcelamentoMaximo { get; set; }
         public bool ParcelamentoMaximo_OverrideForStore { get; set; }
 
+        [NopResourceDisplayName("Plugins.Payments.PayPalPlusBrasil.Fields.Log")]
+        /// <summary>
+        /// get os set a value indicating that will log everthig
+        /// </summary>
+        public bool Log { get; set; }
+        public bool Log_OverrideForStore { get; set; }
+
+        [NopResourceDisplayName("Plugins.Payments.PayPalPlusBrasil.Fields.ProfileName")]
+        /// <summary>
+        /// Nome do ambiente de execução
+        /// </summary>
+        public string ProfileName { get; set; }
+        public bool ProfileName_OverrideForStore { get; set; }
+
+        [NopResourceDisplayName("Plugins.Payments.PayPalPlusBrasil.Fields.ProfileBrandName")]
+        public string ProfileBrandName { get; set; }
+        public bool ProfileBrandName_OverrideForStore { get; set; }
+
+        [NopResourceDisplayName("Plugins.Payments.PayPalPlusBrasil.Fields.ProfileLocaleCode")]
+        public string ProfileLocaleCode { get; set; }
+        public bool ProfileLocaleCode_OverrideForStore { get; set; }
+
     }
 }

@@ -311,8 +311,13 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil
             this.AddOrUpdatePluginLocaleResource("Plugins.Payments.PayPalPlusBrasil.Fields.HabilitarParcelamento", "Habilitar o parcelamento");
             this.AddOrUpdatePluginLocaleResource("Plugins.Payments.PayPalPlusBrasil.Fields.HabilitarParcelamento.Hint", "Habilita o parcelamento no pagamento");
             this.AddOrUpdatePluginLocaleResource("Plugins.Payments.PayPalPlusBrasil.Fields.ParcelamentoMaximo", "Quantidade de Parcelas Máxima");
-            this.AddOrUpdatePluginLocaleResource("Plugins.Payments.PayPalPlusBrasil.Fields.ParcelamentoMaximo.Hint", "Quantidade de Parcelas máxima");
-            
+            this.AddOrUpdatePluginLocaleResource("Plugins.Payments.PayPalPlusBrasil.Fields.Log", "Habilita o log");
+            this.AddOrUpdatePluginLocaleResource("Plugins.Payments.PayPalPlusBrasil.Fields.ProfileName", "Nome do ambiente de execução");
+            this.AddOrUpdatePluginLocaleResource("Plugins.Payments.PayPalPlusBrasil.Fields.ProfileName.Hint", "Nome do ambiente de execução ( ex: Nome da Máquina, dispositivo, ambiente DEV-HOM-PROD");
+            this.AddOrUpdatePluginLocaleResource("Plugins.Payments.PayPalPlusBrasil.Fields.ProfileBrandName", "Nome da marca");
+            this.AddOrUpdatePluginLocaleResource("Plugins.Payments.PayPalPlusBrasil.Fields.ProfileBrandName.Hint", "Nome da marca do ambiente de execução");
+            this.AddOrUpdatePluginLocaleResource("Plugins.Payments.PayPalPlusBrasil.Fields.ProfileLocaleCode", "Local Code do ambiente de execução (BR)");
+            this.AddOrUpdatePluginLocaleResource("Plugins.Payments.PayPalPlusBrasil.Fields.ProfileLocaleCode.Hint", "Local Code do ambiente de execução (BR)");
 
 
             base.Install();
@@ -338,6 +343,13 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil
             this.DeletePluginLocaleResource("Plugins.Payments.PayPalPlusBrasil.Fields.HabilitarParcelamento.Hint");
             this.DeletePluginLocaleResource("Plugins.Payments.PayPalPlusBrasil.Fields.ParcelamentoMaximo");
             this.DeletePluginLocaleResource("Plugins.Payments.PayPalPlusBrasil.Fields.ParcelamentoMaximo.Hint");
+            this.DeletePluginLocaleResource("Plugins.Payments.PayPalPlusBrasil.Fields.Log");
+            this.DeletePluginLocaleResource("Plugins.Payments.PayPalPlusBrasil.Fields.ProfileName");
+            this.DeletePluginLocaleResource("Plugins.Payments.PayPalPlusBrasil.Fields.ProfileName.Hint");
+            this.DeletePluginLocaleResource("Plugins.Payments.PayPalPlusBrasil.Fields.ProfileBrandName");
+            this.DeletePluginLocaleResource("Plugins.Payments.PayPalPlusBrasil.Fields.ProfileBrandName.Hint");
+            this.DeletePluginLocaleResource("Plugins.Payments.PayPalPlusBrasil.Fields.ProfileLocaleCode");
+            this.DeletePluginLocaleResource("Plugins.Payments.PayPalPlusBrasil.Fields.ProfileLocaleCode.Hint");
 
             base.Uninstall();
         }

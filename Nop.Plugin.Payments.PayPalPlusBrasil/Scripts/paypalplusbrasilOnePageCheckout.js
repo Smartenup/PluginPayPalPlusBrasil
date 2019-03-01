@@ -90,6 +90,17 @@
 
                 // <<Insert Code Here>>
 
+                $.ajax({
+                    cache: false,
+                    type: "PUT",
+                    url: "/Plugins/PaymentPayPalPlusBrasil/LogError",
+                    data: { "ppplusError": ppplusError },
+                    success: function () { },
+                    error: function (xhr, ajaxOptions, thrownError) {
+                        alert('Falha ao inserir log de retorno.');
+                    }
+                });
+
                 switch (ppplusError) {
 
                     case "INTERNAL_SERVICE_ERROR": //javascript fallthrough

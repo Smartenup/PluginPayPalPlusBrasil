@@ -14,6 +14,13 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil
                  new { controller = "PaymentPayPalPlusBrasil", action = "IPNHandler" },
                  new[] { "Nop.Plugin.Payments.PayPalPlusBrasil.Controllers" }
             );
+
+            routes.MapRoute("Plugin.Payments.PayPalPlusBrasil.LogError",
+                "Plugins/PaymentPayPalPlusBrasil/LogError",
+                new { controller = "PaymentPayPalPlusBrasil", action = "LogError" },
+                new[] { "Nop.Plugin.Payments.PayPalPlusBrasil.Controllers" }
+            );
+
         }
         public int Priority
         {
