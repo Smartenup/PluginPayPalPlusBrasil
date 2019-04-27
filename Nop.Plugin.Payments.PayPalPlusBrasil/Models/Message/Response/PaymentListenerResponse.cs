@@ -152,8 +152,7 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil.Models.Message.Response
         public ShippingAddressListener ShippingAddressListener { get; set; }
 
         [JsonProperty("phone")]
-        [JsonConverter(typeof(ParseStringConverter))]
-        public long Phone { get; set; }
+        public string Phone { get; set; }
 
         [JsonProperty("tax_id_type")]
         public string TaxIdType { get; set; }
@@ -183,8 +182,7 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil.Models.Message.Response
         public string State { get; set; }
 
         [JsonProperty("postal_code")]
-        [JsonConverter(typeof(ParseStringConverter))]
-        public long PostalCode { get; set; }
+        public string PostalCode { get; set; }
 
         [JsonProperty("country_code")]
         public string CountryCode { get; set; }
