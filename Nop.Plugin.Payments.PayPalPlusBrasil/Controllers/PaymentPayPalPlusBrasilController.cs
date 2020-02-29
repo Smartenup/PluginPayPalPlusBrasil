@@ -236,7 +236,10 @@ namespace Nop.Plugin.Payments.PayPalPlusBrasil.Controllers
                 model.Mode = payPalPlusBrasilPaymentSettings.UseSandbox ? "sandbox" : "live";
                 model.PayerFirstName = customer.BillingAddress.FirstName;
                 model.PayerLastName = customer.BillingAddress.LastName;
-                model.PayerEmail = customer.Email;
+
+                string email = !string.IsNullOrWhiteSpace(customer.Email) ? customer.Email : customer.BillingAddress.Email;
+
+                model.PayerEmail = email;
                 model.PayerPhone = AddressHelper.FormatarCelular(customer.ShippingAddress.PhoneNumber);
                 model.PayerTaxId = cpfCnpj;
                 model.DisableContinue = payPalPlusBrasilPaymentSettings.IdButtonConfirmOrFunction;
